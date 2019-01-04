@@ -15,8 +15,6 @@ import static org.eclipse.che.commons.lang.NameGenerator.generate;
 import static org.eclipse.che.selenium.core.TestGroup.FLAKY;
 import static org.eclipse.che.selenium.pageobject.ProjectExplorer.FolderTypes.PROJECT_FOLDER;
 import static org.eclipse.che.selenium.pageobject.dashboard.NewWorkspace.Stack.JAVA;
-import static org.eclipse.che.selenium.pageobject.dashboard.ProjectSourcePage.Template.CONSOLE_JAVA_SIMPLE;
-import static org.eclipse.che.selenium.pageobject.dashboard.ProjectSourcePage.Template.WEB_JAVA_SPRING;
 import static org.eclipse.che.selenium.pageobject.dashboard.workspaces.WorkspaceDetails.WorkspaceDetailsTab.PROJECTS;
 import static org.testng.Assert.fail;
 
@@ -47,9 +45,10 @@ import org.testng.annotations.Test;
 public class CreateAndDeleteProjectsTest {
 
   private static final String WORKSPACE = generate("workspace", 4);
-  private static final String SECOND_WEB_JAVA_SPRING_PROJECT_NAME = WEB_JAVA_SPRING + "-1";
 
   private String dashboardWindow;
+  private String projectExample = getProjectName();
+  private String secondProjectExample = projectExample + "-1";
 
   @Inject private Dashboard dashboard;
   @Inject private WorkspaceProjects workspaceProjects;
@@ -93,18 +92,16 @@ public class CreateAndDeleteProjectsTest {
     newWorkspace.selectStack(JAVA);
     newWorkspace.typeWorkspaceName(WORKSPACE);
 
-    // create 'web-java-spring' and 'console-java-simple' projects
+    // add projects
     projectSourcePage.clickOnAddOrImportProjectButton();
-    projectSourcePage.selectSample(WEB_JAVA_SPRING);
-    projectSourcePage.selectSample(CONSOLE_JAVA_SIMPLE);
+    projectSourcePage.selectSample(projectExample);
     projectSourcePage.clickOnAddProjectButton();
-
-    // create 'web-java-spring-1' project
     projectSourcePage.clickOnAddOrImportProjectButton();
-    projectSourcePage.selectSample(WEB_JAVA_SPRING);
+    projectSourcePage.selectSample(projectExample);
     projectSourcePage.clickOnAddProjectButton();
 
     newWorkspace.clickOnCreateButtonAndOpenInIDE();
+
     // store info about created workspace to make SeleniumTestHandler.captureTestWorkspaceLogs()
     // possible to read logs in case of test failure
     testWorkspace = testWorkspaceProvider.getWorkspace(WORKSPACE, defaultTestUser);
@@ -115,37 +112,34 @@ public class CreateAndDeleteProjectsTest {
     ide.waitOpenedWorkspaceIsReadyToUse();
 
     // wait for projects initializing
-    explorer.waitItem(WEB_JAVA_SPRING);
-    explorer.waitItem(CONSOLE_JAVA_SIMPLE);
-    explorer.waitItem(SECOND_WEB_JAVA_SPRING_PROJECT_NAME);
+    explorer.waitItem(projectExample);
+    explorer.waitItem(secondProjectExample);
     notificationsPopupPanel.waitPopupPanelsAreClosed();
+
+    explorer.waitDefinedTypeOfFolder(projectExample, PROJECT_FOLDER);
+    explorer.waitDefinedTypeOfFolder(secondProjectExample, PROJECT_FOLDER);
     mavenPluginStatusBar.waitClosingInfoPanel();
-    explorer.waitDefinedTypeOfFolder(CONSOLE_JAVA_SIMPLE, PROJECT_FOLDER);
-    explorer.waitDefinedTypeOfFolder(WEB_JAVA_SPRING, PROJECT_FOLDER);
-    notificationsPopupPanel.waitPopupPanelsAreClosed();
   }
 
   @Test(priority = 1, groups = FLAKY)
   public void deleteProjectsFromDashboardTest() {
-    switchToWindow(dashboardWindow);
+    seleniumWebDriver.switchTo().window(dashboardWindow);
+
     dashboard.selectWorkspacesItemOnDashboard();
     workspaces.selectWorkspaceItemName(WORKSPACE);
     workspaceDetails.selectTabInWorkspaceMenu(PROJECTS);
-    workspaceProjects.waitProjectIsPresent(WEB_JAVA_SPRING);
-    workspaceProjects.waitProjectIsPresent(CONSOLE_JAVA_SIMPLE);
-    openProjectSettings(WEB_JAVA_SPRING);
-    workspaceProjects.clickOnDeleteProject();
-    workspaceProjects.clickOnDeleteItInDialogWindow();
-    workspaceProjects.waitProjectIsNotPresent(WEB_JAVA_SPRING);
-    workspaceProjects.waitProjectIsPresent(SECOND_WEB_JAVA_SPRING_PROJECT_NAME);
-    openProjectSettings(CONSOLE_JAVA_SIMPLE);
-    workspaceProjects.clickOnDeleteProject();
-    workspaceProjects.clickOnDeleteItInDialogWindow();
-    workspaceProjects.waitProjectIsNotPresent(CONSOLE_JAVA_SIMPLE);
-  }
+    workspaceProjects.waitProjectIsPresent(projectExample);
 
-  private void switchToWindow(String windowHandle) {
-    seleniumWebDriver.switchTo().window(windowHandle);
+    openProjectSettings(projectExample);
+    workspaceProjects.clickOnDeleteProject();
+    workspaceProjects.clickOnDeleteItInDialogWindow();
+    workspaceProjects.waitProjectIsNotPresent(projectExample);
+    workspaceProjects.waitProjectIsPresent(secondProjectExample);
+
+    openProjectSettings(secondProjectExample);
+    workspaceProjects.clickOnDeleteProject();
+    workspaceProjects.clickOnDeleteItInDialogWindow();
+    workspaceProjects.waitProjectIsNotPresent(secondProjectExample);
   }
 
   private void openProjectSettings(String projectName) {
@@ -155,5 +149,9 @@ public class CreateAndDeleteProjectsTest {
       // remove try-catch block after issue has been resolved
       fail("Known random failure https://github.com/eclipse/che/issues/8931");
     }
+  }
+
+  protected String getProjectName() {
+    return "web-java-spring";
   }
 }

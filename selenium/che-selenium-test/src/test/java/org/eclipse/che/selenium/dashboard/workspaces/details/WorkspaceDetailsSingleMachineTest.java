@@ -13,8 +13,6 @@ package org.eclipse.che.selenium.dashboard.workspaces.details;
 
 import static org.eclipse.che.commons.lang.NameGenerator.generate;
 import static org.eclipse.che.selenium.core.project.ProjectTemplates.MAVEN_SPRING;
-import static org.eclipse.che.selenium.pageobject.dashboard.ProjectSourcePage.Template.CONSOLE_JAVA_SIMPLE;
-import static org.eclipse.che.selenium.pageobject.dashboard.ProjectSourcePage.Template.WEB_JAVA_SPRING;
 import static org.eclipse.che.selenium.pageobject.dashboard.workspaces.WorkspaceDetails.StateWorkspace.RUNNING;
 import static org.eclipse.che.selenium.pageobject.dashboard.workspaces.WorkspaceDetails.StateWorkspace.STOPPED;
 import static org.eclipse.che.selenium.pageobject.dashboard.workspaces.WorkspaceDetails.WorkspaceDetailsTab.INSTALLERS;
@@ -187,23 +185,22 @@ public class WorkspaceDetailsSingleMachineTest {
 
   @Test
   public void checkWorkingWithProjects() {
+    String sampleProjectName = getSampleProjectName();
     workspaceDetails.selectTabInWorkspaceMenu(PROJECTS);
 
     // add new project and cancel adding
-    addNewProject(WEB_JAVA_SPRING);
+    addNewProject(sampleProjectName);
     workspaceDetails.clickOnCancelChangesBtn();
-    workspaceProjects.waitProjectIsNotPresent(WEB_JAVA_SPRING);
+    workspaceProjects.waitProjectIsNotPresent(sampleProjectName);
 
     // add two projects and save changes
     workspaceProjects.clickOnAddNewProjectButton();
-    projectSourcePage.selectSample(WEB_JAVA_SPRING);
-    projectSourcePage.selectSample(CONSOLE_JAVA_SIMPLE);
+    projectSourcePage.selectSample(sampleProjectName);
     projectSourcePage.clickOnAddProjectButton();
     clickOnSaveButton();
 
     // check that project exists(workspace will restart)
-    workspaceProjects.waitProjectIsPresent(WEB_JAVA_SPRING);
-    workspaceProjects.waitProjectIsPresent(CONSOLE_JAVA_SIMPLE);
+    workspaceProjects.waitProjectIsPresent(sampleProjectName);
   }
 
   @Test
@@ -278,5 +275,9 @@ public class WorkspaceDetailsSingleMachineTest {
     workspaceDetails.clickOnAddButtonInDialogWindow();
     clickOnSaveButton();
     workspaceServers.checkServerExists(serverName, serverPort);
+  }
+
+  protected String getSampleProjectName() {
+    return "web-java-spring";
   }
 }

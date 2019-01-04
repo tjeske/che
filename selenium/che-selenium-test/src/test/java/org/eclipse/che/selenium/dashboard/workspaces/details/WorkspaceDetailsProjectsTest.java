@@ -40,13 +40,13 @@ import org.testng.annotations.Test;
 public class WorkspaceDetailsProjectsTest {
   private static final String PROJECT_NAME = NameGenerator.generate("wsDetails", 4);
   private static final String PROJECT_FOR_SEARCHING_NAME = NameGenerator.generate("searchWs", 4);
-  private static final String SPRING_SAMPLE_NAME = "web-java-spring";
-  private static final String CONSOLE_SAMPLE_NAME = "console-java-simple";
   private static final String EXPECTED_SUCCESS_NOTIFICATION = "Success\n" + "Workspace updated.";
   private static final String CHECKING_CHECKBOXES_PROJECT_NAME = "checkboxesProject";
   private static final String CHECKING_CHECKBOXES_NEWEST_PROJECT_NAME = "newestProject";
   private static final String PROJECTS_CANNOT_BE_REMOVED_IN_STOPPED_WORKSPACE_WARNING =
       "Projects cannot be removed in stopped workspace.";
+
+  private String sampleProjectName = getSampleProjectName();
 
   @Inject private Dashboard dashboard;
   @Inject private WorkspaceProjects workspaceProjects;
@@ -102,7 +102,7 @@ public class WorkspaceDetailsProjectsTest {
 
     // reject added project
     workspaceProjects.waitAndClickOn(WorkspaceProjects.BottomButton.CANCEL_BUTTON);
-    workspaceProjects.waitProjectIsNotPresent(SPRING_SAMPLE_NAME);
+    workspaceProjects.waitProjectIsNotPresent(sampleProjectName);
 
     addSpringSampleToWorkspace();
 
@@ -111,7 +111,7 @@ public class WorkspaceDetailsProjectsTest {
     // save added project
     workspaceProjects.waitAndClickOn(SAVE_BUTTON);
     workspaceProjects.waitNotification(EXPECTED_SUCCESS_NOTIFICATION);
-    workspaceProjects.waitProjectIsPresent(SPRING_SAMPLE_NAME);
+    workspaceProjects.waitProjectIsPresent(sampleProjectName);
   }
 
   @Test
@@ -174,22 +174,22 @@ public class WorkspaceDetailsProjectsTest {
     workspaceProjects.clickOnAddNewProjectButton();
     workspaceProjectsSamples.waitSamplesForm();
     workspaceProjectsSamples.waitTabSelected(SAMPLES_BUTTON);
-    workspaceProjectsSamples.waitAllCheckboxesDisabled(SPRING_SAMPLE_NAME, CONSOLE_SAMPLE_NAME);
+    workspaceProjectsSamples.waitAllCheckboxesDisabled(sampleProjectName);
     workspaceProjectsSamples.waitButtonDisabled(ADD_BUTTON, CANCEL_BUTTON);
 
-    workspaceProjectsSamples.clickOnAllCheckboxes(SPRING_SAMPLE_NAME);
-    workspaceProjectsSamples.waitAllCheckboxesEnabled(SPRING_SAMPLE_NAME);
+    workspaceProjectsSamples.clickOnAllCheckboxes(sampleProjectName);
+    workspaceProjectsSamples.waitAllCheckboxesEnabled(sampleProjectName);
     workspaceProjectsSamples.waitButtonEnabled(ADD_BUTTON, CANCEL_BUTTON);
 
     workspaceProjectsSamples.clickOnButton(ADD_BUTTON);
 
     workspaceProjects.waitEnabled(
         WorkspaceProjects.BottomButton.CANCEL_BUTTON, APPLY_BUTTON, SAVE_BUTTON);
-    workspaceProjects.waitProjectIsPresent(SPRING_SAMPLE_NAME);
+    workspaceProjects.waitProjectIsPresent(sampleProjectName);
   }
 
   private void checkProjectAppearanceAndButtonsState() {
-    workspaceProjects.waitProjectIsPresent(SPRING_SAMPLE_NAME);
+    workspaceProjects.waitProjectIsPresent(sampleProjectName);
     workspaceProjects.waitEnabled(
         APPLY_BUTTON, SAVE_BUTTON, WorkspaceProjects.BottomButton.CANCEL_BUTTON);
   }
@@ -201,5 +201,9 @@ public class WorkspaceDetailsProjectsTest {
     workspaceDetails.waitToolbarTitleName(workspaceName);
     workspaceDetails.selectTabInWorkspaceMenu(PROJECTS);
     workspaceProjects.waitProjectDetailsPage();
+  }
+
+  protected String getSampleProjectName() {
+    return "web-java-spring";
   }
 }

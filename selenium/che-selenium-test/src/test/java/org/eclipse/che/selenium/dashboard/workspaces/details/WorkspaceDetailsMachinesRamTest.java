@@ -28,11 +28,12 @@ import org.testng.annotations.Test;
 
 public class WorkspaceDetailsMachinesRamTest {
   private static final String MACHINE_NAME = "dev-machine";
-  private static final String IMAGE_NAME = "eclipse/ubuntu_jdk8";
   private static final String EXPECTED_RAM_VALUE = "2";
   private static final String MAX_RAM_VALID_VALUE = "100";
   private static final String MIN_RAM_VALID_VALUE = "0.1";
   private static final String SUCCESS_NOTIFICATION_MESSAGE = "Workspace updated.";
+
+  private String imageName = getImageName();
 
   @Inject private Dashboard dashboard;
   @Inject private Workspaces workspaces;
@@ -56,7 +57,7 @@ public class WorkspaceDetailsMachinesRamTest {
   @Test
   public void checkRamSection() {
     workspaceDetailsMachines.waitMachineListItemWithAttributes(
-        MACHINE_NAME, IMAGE_NAME, EXPECTED_RAM_VALUE);
+        MACHINE_NAME, imageName, EXPECTED_RAM_VALUE);
 
     // check behavior with invalid RAM value
     workspaceDetailsMachines.typeRamAmount(MACHINE_NAME, "");
@@ -108,5 +109,9 @@ public class WorkspaceDetailsMachinesRamTest {
     workspaceDetailsMachines.waitRamAmount(MACHINE_NAME, "3");
     workspaceDetails.waitAllDisabled(SAVE_BUTTON);
     workspaceDetails.waitAllDisabled(CANCEL_BUTTON);
+  }
+
+  protected String getImageName() {
+    return "eclipse/ubuntu_jdk8";
   }
 }

@@ -13,7 +13,6 @@ package org.eclipse.che.selenium.dashboard;
 
 import static org.eclipse.che.commons.lang.NameGenerator.generate;
 import static org.eclipse.che.selenium.pageobject.dashboard.NewWorkspace.Stack.JAVA;
-import static org.eclipse.che.selenium.pageobject.dashboard.ProjectSourcePage.Template.WEB_JAVA_SPRING;
 import static org.eclipse.che.selenium.pageobject.dashboard.factories.CreateFactoryPage.TabNames.CONFIG_TAB_ID;
 import static org.eclipse.che.selenium.pageobject.dashboard.factories.CreateFactoryPage.TabNames.GIT_TAB_ID;
 import static org.eclipse.che.selenium.pageobject.dashboard.factories.CreateFactoryPage.TabNames.TEMPLATE_TAB_ID;
@@ -78,9 +77,11 @@ public class CreateFactoryTest {
   private static final String LOAD_FILE_CONFIGURATION_MESSAGE =
       "Successfully loaded file's configuration config-ws.json.";
 
+  private String projectName = getProjectName();
+
   @Inject private TestWorkspaceServiceClient workspaceServiceClient;
   @Inject private TestFactoryServiceClient factoryServiceClient;
-  @Inject private DashboardFactories dashboardFactories;
+  @Inject protected DashboardFactories dashboardFactories;
   @Inject private ProjectSourcePage projectSourcePage;
   @Inject private WorkspaceDetails workspaceDetails;
   @Inject private FactoryDetails factoryDetails;
@@ -88,7 +89,7 @@ public class CreateFactoryTest {
   @Inject private DefaultTestUser defaultTestUser;
   @Inject private TestGitHubRepository testRepo;
   @Inject private Workspaces workspaces;
-  @Inject private CreateFactoryPage createFactoryPage;
+  @Inject protected CreateFactoryPage createFactoryPage;
   @Inject private Dashboard dashboard;
   @Inject private Loader loader;
   @Inject private TestWorkspaceProvider testWorkspaceProvider;
@@ -130,7 +131,7 @@ public class CreateFactoryTest {
   }
 
   @BeforeMethod
-  private void openNewFactoryPage() {
+  public void openNewFactoryPage() {
     // open the New Factory page before starting each test method
     dashboardFactories.selectFactoriesOnNavBar();
     dashboardFactories.waitAllFactoriesPage();
@@ -380,9 +381,9 @@ public class CreateFactoryTest {
     newWorkspace.typeWorkspaceName(workspaceName);
 
     projectSourcePage.clickOnAddOrImportProjectButton();
-    projectSourcePage.selectSample(WEB_JAVA_SPRING);
+    projectSourcePage.selectSample(projectName);
     projectSourcePage.clickOnAddProjectButton();
-    projectSourcePage.waitCreatedProjectButton(WEB_JAVA_SPRING);
+    projectSourcePage.waitCreatedProjectButton(projectName);
 
     newWorkspace.clickOnCreateButtonAndEditWorkspace();
 
@@ -423,5 +424,9 @@ public class CreateFactoryTest {
     assertTrue(createFactoryPage.isCreateFactoryButtonEnabled());
 
     createFactoryPage.clickOnCreateFactoryButton();
+  }
+
+  protected String getProjectName() {
+    return "web-java-spring";
   }
 }

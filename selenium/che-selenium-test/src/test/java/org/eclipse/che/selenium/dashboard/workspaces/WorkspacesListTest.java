@@ -15,7 +15,7 @@ import static java.util.Arrays.asList;
 import static org.eclipse.che.selenium.core.TestGroup.UNDER_REPAIR;
 import static org.eclipse.che.selenium.core.project.ProjectTemplates.MAVEN_SPRING;
 import static org.eclipse.che.selenium.core.workspace.WorkspaceTemplate.UBUNTU_JDK8;
-import static org.eclipse.che.selenium.pageobject.dashboard.NewWorkspace.Stack.BLANK;
+import static org.eclipse.che.selenium.pageobject.dashboard.NewWorkspace.Stack.NODE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -28,6 +28,7 @@ import org.eclipse.che.selenium.core.SeleniumWebDriver;
 import org.eclipse.che.selenium.core.client.TestProjectServiceClient;
 import org.eclipse.che.selenium.core.client.TestWorkspaceServiceClient;
 import org.eclipse.che.selenium.core.user.DefaultTestUser;
+import org.eclipse.che.selenium.core.utils.WaitUtils;
 import org.eclipse.che.selenium.core.webdriver.SeleniumWebDriverHelper;
 import org.eclipse.che.selenium.core.workspace.InjectTestWorkspace;
 import org.eclipse.che.selenium.core.workspace.TestWorkspace;
@@ -53,7 +54,6 @@ public class WorkspacesListTest {
   private static final int JAVA_WS_MB = 3072;
   private static final int BLANK_WS_PROJECTS_COUNT = 0;
   private static final int JAVA_WS_PROJECTS_COUNT = 1;
-  private static final String EXPECTED_DOCUMENTATION_PAGE_TITLE = "Eclipse Che Documentation";
   private static final String EXPECTED_JAVA_PROJECT_NAME = "web-java-spring";
   private static final String NEWEST_CREATED_WORKSPACE_NAME = "just-created-workspace";
   private static final int EXPECTED_SORTED_WORKSPACES_COUNT = 1;
@@ -80,7 +80,7 @@ public class WorkspacesListTest {
   @InjectTestWorkspace(template = UBUNTU_JDK8, memoryGb = 3)
   private TestWorkspace javaWorkspace;
 
-  private Workspaces.WorkspaceListItem expectedBlankItem;
+  private Workspaces.WorkspaceListItem expectedNodeItem;
   private Workspaces.WorkspaceListItem expectedJavaItem;
   private Workspaces.WorkspaceListItem expectedNewestWorkspaceItem;
 
@@ -91,7 +91,7 @@ public class WorkspacesListTest {
     testProjectServiceClient.importProject(
         javaWorkspace.getId(), Paths.get(resource.toURI()), "web-java-spring", MAVEN_SPRING);
 
-    expectedBlankItem =
+    expectedNodeItem =
         new Workspaces.WorkspaceListItem(
             defaultTestUser.getName(),
             blankWorkspace.getName(),
@@ -254,17 +254,17 @@ public class WorkspacesListTest {
 
   @Test
   public void checkSearchField() throws Exception {
-    int nameLength = expectedBlankItem.getWorkspaceName().length();
+    int nameLength = expectedNodeItem.getWorkspaceName().length();
     int existingWorkspacesCount = getWorkspacesCount();
     String sequenceForSearch =
-        expectedBlankItem.getWorkspaceName().substring(nameLength - 5, nameLength);
+        expectedNodeItem.getWorkspaceName().substring(nameLength - 5, nameLength);
 
     workspaces.waitVisibleWorkspacesCount(existingWorkspacesCount);
 
     workspaces.typeToSearchInput(sequenceForSearch);
     workspaces.waitVisibleWorkspacesCount(EXPECTED_SORTED_WORKSPACES_COUNT);
     List<Workspaces.WorkspaceListItem> items = workspaces.getVisibleWorkspaces();
-    assertEquals(items.get(0).getWorkspaceName(), expectedBlankItem.getWorkspaceName());
+    assertEquals(items.get(0).getWorkspaceName(), expectedNodeItem.getWorkspaceName());
 
     // check displaying list size
     workspaces.typeToSearchInput("");
@@ -279,17 +279,6 @@ public class WorkspacesListTest {
   @Test
   public void checkWorkspaceActions() throws Exception {
     workspaces.waitPageLoading();
-    String mainWindow = seleniumWebDriver.getWindowHandle();
-
-    // check documentation link
-    workspaces.clickOnDocumentationLink();
-    seleniumWebDriverHelper.waitOpenedSomeWin();
-    seleniumWebDriverHelper.switchToNextWindow(mainWindow);
-
-    documentationPage.waitTitle(EXPECTED_DOCUMENTATION_PAGE_TITLE);
-
-    seleniumWebDriver.close();
-    seleniumWebDriver.switchTo().window(mainWindow);
 
     // go to workspace details by clicking on item in workspaces list
     workspaces.clickOnAddWorkspaceBtn();
@@ -300,9 +289,9 @@ public class WorkspacesListTest {
     workspaces.waitPageLoading();
 
     workspaces.clickOnWorkspaceListItem(
-        defaultTestUser.getName(), expectedBlankItem.getWorkspaceName());
+        defaultTestUser.getName(), expectedNodeItem.getWorkspaceName());
 
-    workspaceOverview.checkNameWorkspace(expectedBlankItem.getWorkspaceName());
+    workspaceOverview.checkNameWorkspace(expectedNodeItem.getWorkspaceName());
 
     seleniumWebDriver.navigate().back();
 
@@ -339,7 +328,7 @@ public class WorkspacesListTest {
     workspaces.clickOnAddWorkspaceBtn();
     newWorkspace.waitToolbar();
     newWorkspace.typeWorkspaceName(NEWEST_CREATED_WORKSPACE_NAME);
-    newWorkspace.selectStack(BLANK);
+    newWorkspace.selectStack(NODE);
     newWorkspace.clickOnCreateButtonAndEditWorkspace();
     workspaceOverview.checkNameWorkspace(NEWEST_CREATED_WORKSPACE_NAME);
 
@@ -366,14 +355,31 @@ public class WorkspacesListTest {
     workspaces.waitWorkspaceIsNotPresent(workspaceToDelete.getName());
   }
 
+  @Test(priority = 1, alwaysRun = true)
+  public void checkDocumentionLink() {
+    workspaces.waitPageLoading();
+    WaitUtils.sleepQuietly(5);
+    String mainWindow = seleniumWebDriver.getWindowHandle();
+
+    // check documentation link
+    workspaces.waitDocumentationLink();
+    workspaces.clickOnDocumentationLink();
+    seleniumWebDriverHelper.waitOpenedSomeWin();
+    seleniumWebDriverHelper.switchToNextWindow(mainWindow);
+
+    assertTrue(documentationPage.getTitle().contains(getDocumentationPageTitle()));
+
+    seleniumWebDriver.close();
+    seleniumWebDriver.switchTo().window(mainWindow);
+  }
+
   private void checkExpectedBlankWorkspaceDisplaying() {
     List<Workspaces.WorkspaceListItem> items = workspaces.getVisibleWorkspaces();
 
     Workspaces.WorkspaceListItem currentDisplayingBlankItem =
-        workspaces.getWorkspacesListItemByWorkspaceName(
-            items, expectedBlankItem.getWorkspaceName());
+        workspaces.getWorkspacesListItemByWorkspaceName(items, expectedNodeItem.getWorkspaceName());
 
-    assertEquals(currentDisplayingBlankItem, expectedBlankItem);
+    assertEquals(currentDisplayingBlankItem, expectedNodeItem);
   }
 
   private void checkExpectedJavaWorkspaceDisplaying() {
@@ -387,5 +393,9 @@ public class WorkspacesListTest {
 
   private int getWorkspacesCount() throws Exception {
     return testWorkspaceServiceClient.getAll().size();
+  }
+
+  protected String getDocumentationPageTitle() {
+    return "Eclipse Che Documentation";
   }
 }

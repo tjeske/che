@@ -11,6 +11,7 @@
  */
 package org.eclipse.che.selenium.dashboard.workspaces.details;
 
+import static org.eclipse.che.commons.lang.NameGenerator.generate;
 import static org.eclipse.che.selenium.core.TestGroup.DOCKER;
 import static org.eclipse.che.selenium.core.TestGroup.K8S;
 import static org.eclipse.che.selenium.core.TestGroup.OPENSHIFT;
@@ -24,7 +25,6 @@ import static org.openqa.selenium.Keys.ARROW_UP;
 import static org.openqa.selenium.Keys.ESCAPE;
 
 import com.google.inject.Inject;
-import org.eclipse.che.commons.lang.NameGenerator;
 import org.eclipse.che.selenium.core.SeleniumWebDriver;
 import org.eclipse.che.selenium.core.webdriver.SeleniumWebDriverHelper;
 import org.eclipse.che.selenium.core.workspace.TestWorkspace;
@@ -41,19 +41,20 @@ import org.testng.annotations.Test;
 public class WorkspaceDetailsMachineActionsTest {
   private static final String MACHINE_NAME = "dev-machine";
   private static final String CHANGED_MACHINE_NAME = "test-machine";
-  private static final String IMAGE_NAME = "eclipse/ubuntu_jdk8";
   private static final String EXPECTED_RAM_VALUE = "2";
   private static final String EMPTY_NAME_ERROR_MESSAGE = "Machine's name is required.";
   private static final String SPECIAL_CHARACTERS_ERRORS_MESSAGE =
       "The name should not contain special characters like space, dollar, etc.";
   private static final String NAME_WITH_SPECIAL_CHARACTERS = "@#$^&*(!";
-  private static final String MAX_VALID_NAME = NameGenerator.generate("max_name", 120);
-  private static final String TOO_BIG_NAME = NameGenerator.generate(MAX_VALID_NAME, 1);
+  private static final String MAX_VALID_NAME = generate("max_name", 120);
+  private static final String TOO_BIG_NAME = generate(MAX_VALID_NAME, 1);
   private static final String TOO_BIG_RAM_SIZE = "1000";
   private static final String MAX_VALID_RAM_VALUE = "100";
-  private static final String NOT_EXISTED_IMAGE = NameGenerator.generate("wrong/image", 5);
+  private static final String NOT_EXISTED_IMAGE = generate("wrong/image", 5);
   private static final String CHANGED_RAM_SIZE = "7";
   private static final String MIN_VALID_RAM_VALUE = "0.1";
+
+  private String imageName = getImageName();
 
   @Inject private Dashboard dashboard;
   @Inject private Workspaces workspaces;
@@ -81,7 +82,7 @@ public class WorkspaceDetailsMachineActionsTest {
   @Test
   public void checkEditFormClosing() {
     workspaceDetailsMachines.waitMachineListItemWithAttributes(
-        MACHINE_NAME, IMAGE_NAME, EXPECTED_RAM_VALUE);
+        MACHINE_NAME, imageName, EXPECTED_RAM_VALUE);
 
     // close form by "ESC" button
     workspaceDetailsMachines.clickOnEditButton(MACHINE_NAME);
@@ -104,22 +105,22 @@ public class WorkspaceDetailsMachineActionsTest {
 
   @Test(groups = {OPENSHIFT, K8S, OSIO})
   public void checkEditMachineNameOpenshift() {
-    checkEditOfMachineName(IMAGE_NAME);
+    checkEditOfMachineName(imageName);
   }
 
   @Test(groups = DOCKER)
   public void checkEditMachineNameDocker() {
-    checkEditOfMachineName("FROM " + IMAGE_NAME + "\n");
+    checkEditOfMachineName("FROM " + imageName + "\n");
   }
 
   @Test(groups = {OPENSHIFT, K8S, OSIO})
   public void checkRamSectionOpenshift() {
-    checkRamSection(IMAGE_NAME);
+    checkRamSection(imageName);
   }
 
   @Test(groups = {DOCKER})
   public void checkRamSectionDocker() {
-    checkRamSection("FROM " + IMAGE_NAME + "\n");
+    checkRamSection("FROM " + imageName + "\n");
   }
 
   private void checkEditOfMachineName(String expectedRecipeText) {
@@ -215,17 +216,17 @@ public class WorkspaceDetailsMachineActionsTest {
     editMachineForm.waitFormInvisibility();
     workspaceDetails.waitAllEnabled(SAVE_BUTTON, APPLY_BUTTON, CANCEL_BUTTON);
     workspaceDetailsMachines.waitMachineListItemWithAttributes(
-        MACHINE_NAME, IMAGE_NAME, CHANGED_RAM_SIZE);
+        MACHINE_NAME, imageName, CHANGED_RAM_SIZE);
     workspaceDetails.waitAllEnabled(SAVE_BUTTON, APPLY_BUTTON, CANCEL_BUTTON);
     workspaceDetails.waitAndClickOn(SAVE_BUTTON);
     workspaceDetailsMachines.waitMachineListItemWithAttributes(
-        MACHINE_NAME, IMAGE_NAME, CHANGED_RAM_SIZE);
+        MACHINE_NAME, imageName, CHANGED_RAM_SIZE);
   }
 
   @Test
   public void checkMachineSettings() {
     final String installerName = "Exec";
-    final String serverName = "tomcat8";
+    final String serverName = "terminal";
 
     // check the "Installers" link
     waitMachineListItemAndClickOnSettingsButton();
@@ -264,5 +265,9 @@ public class WorkspaceDetailsMachineActionsTest {
   private void setValidName() {
     editMachineForm.typeName(MACHINE_NAME);
     editMachineForm.waitValidNameHighlighting();
+  }
+
+  protected String getImageName() {
+    return "eclipse/ubuntu_jdk8";
   }
 }
