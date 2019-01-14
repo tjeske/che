@@ -1,13 +1,15 @@
 ---
 kind: List
 items:
- -apiVersion: v1
+ - 
+ apiVersion: v1
   kind: Pod
   metadata:
    name: ws
   spec:
    containers:
-    -image: 'eclipse/che-dev:nightly'
+    - 
+    image: 'eclipse/che-dev:nightly'
      name: dev
      mem_limit: 1073741824
      resources:
