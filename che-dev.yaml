@@ -9,8 +9,7 @@ items:
      containers:
      - name: dev
        image: 'eclipse/che-dev:nightly'
-       mem_limit: 1073741824
        resources:
          limits:
-         memory: 1536Mi
+           memory: 1536Mi
 
