@@ -12,3 +12,6 @@ tools:
   - name: exec-plugin
     type: chePlugin
     id: che-machine-exec-plugin:0.0.1
+  - name: che-dev
+    type: openshift
+    local: che-dev.yaml
