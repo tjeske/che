@@ -12,4 +12,21 @@ items:
        resources:
          limits:
            memory: 1536Mi
-
+       volumeMounts:
+       -
+         mountPath: /projects
+         name: projects
+     volumes:
+     - name: projects
+       persistentVolumeClaim:
+         claimName: projects
+ - apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: projects
+   spec:
+     accessModes:
+      - ReadWriteOnce
+     resources:
+       requests:
+         storage: 1Gi
