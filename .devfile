@@ -15,3 +15,10 @@ tools:
   - name: che-dev
     type: openshift
     local: che-dev.yaml
+commands:
+  - name: build
+    actions:
+      - type: exec
+        tool: che-dev
+        command: mvn clean install
+        workdir: /projects/che
