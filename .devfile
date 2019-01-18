@@ -12,3 +12,13 @@ tools:
   - name: exec-plugin
     type: chePlugin
     id: che-machine-exec-plugin:0.0.1
+  - name: che-dev
+    type: openshift
+    local: che-dev.yaml
+commands:
+  - name: build
+    actions:
+      - type: exec
+        tool: che-dev
+        command: mvn clean install
+        workdir: /projects/che
