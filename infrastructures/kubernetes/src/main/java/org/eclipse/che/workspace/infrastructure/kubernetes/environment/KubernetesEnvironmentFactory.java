@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -100,26 +101,36 @@ public class KubernetesEnvironmentFactory
         clientFactory.create().lists().load(new ByteArrayInputStream(content.getBytes())).get();
 
     Map<String, Pod> pods = new HashMap<>();
+    Map<String, Deployment> deployments = new HashMap<>();
     Map<String, Service> services = new HashMap<>();
+    Map<String, ConfigMap> configMaps = new HashMap<>();
+    Map<String, PersistentVolumeClaim> pvcs = new HashMap<>();
     boolean isAnyIngressPresent = false;
-    boolean isAnyPVCPresent = false;
     boolean isAnySecretPresent = false;
-    boolean isAnyConfigMapPresent = false;
     for (HasMetadata object : list.getItems()) {
+      checkNotNull(object.getKind(), "Environment contains object without specified kind field");
+      checkNotNull(object.getMetadata(), "%s metadata must not be null", object.getKind());
+      checkNotNull(object.getMetadata().getName(), "%s name must not be null", object.getKind());
+
       if (object instanceof Pod) {
         Pod pod = (Pod) object;
         pods.put(pod.getMetadata().getName(), pod);
+      } else if (object instanceof Deployment) {
+        Deployment deployment = (Deployment) object;
+        deployments.put(deployment.getMetadata().getName(), deployment);
       } else if (object instanceof Service) {
         Service service = (Service) object;
         services.put(service.getMetadata().getName(), service);
       } else if (object instanceof Ingress) {
         isAnyIngressPresent = true;
       } else if (object instanceof PersistentVolumeClaim) {
-        isAnyPVCPresent = true;
+        PersistentVolumeClaim pvc = (PersistentVolumeClaim) object;
+        pvcs.put(pvc.getMetadata().getName(), pvc);
       } else if (object instanceof Secret) {
         isAnySecretPresent = true;
       } else if (object instanceof ConfigMap) {
-        isAnyConfigMapPresent = true;
+        ConfigMap configMap = (ConfigMap) object;
+        configMaps.put(configMap.getMetadata().getName(), configMap);
       } else {
         throw new ValidationException(
             format("Found unknown object type '%s'", object.getMetadata()));
@@ -132,22 +143,10 @@ public class KubernetesEnvironmentFactory
               Warnings.INGRESSES_IGNORED_WARNING_CODE, Warnings.INGRESSES_IGNORED_WARNING_MESSAGE));
     }
 
-    if (isAnyPVCPresent) {
-      warnings.add(
-          new WarningImpl(Warnings.PVC_IGNORED_WARNING_CODE, Warnings.PVC_IGNORED_WARNING_MESSAGE));
-    }
-
     if (isAnySecretPresent) {
       warnings.add(
           new WarningImpl(
               Warnings.SECRET_IGNORED_WARNING_CODE, Warnings.SECRET_IGNORED_WARNING_MESSAGE));
-    }
-
-    if (isAnyConfigMapPresent) {
-      warnings.add(
-          new WarningImpl(
-              Warnings.CONFIG_MAP_IGNORED_WARNING_CODE,
-              Warnings.CONFIG_MAP_IGNORED_WARNING_MESSAGE));
     }
 
     addRamAttributes(machines, pods.values());
@@ -158,11 +157,13 @@ public class KubernetesEnvironmentFactory
             .setMachines(machines)
             .setWarnings(warnings)
             .setPods(pods)
+            .setDeployments(deployments)
             .setServices(services)
+            .setPersistentVolumeClaims(pvcs)
             .setIngresses(new HashMap<>())
             .setPersistentVolumeClaims(new HashMap<>())
             .setSecrets(new HashMap<>())
-            .setConfigMaps(new HashMap<>())
+            .setConfigMaps(configMaps)
             .build();
 
     envValidator.validate(k8sEnv);
@@ -189,6 +190,13 @@ public class KubernetesEnvironmentFactory
   private void checkNotNull(Object object, String errorMessage) throws ValidationException {
     if (object == null) {
       throw new ValidationException(errorMessage);
+    }
+  }
+
+  private void checkNotNull(Object object, String messageFmt, Object... messageArguments)
+      throws ValidationException {
+    if (object == null) {
+      throw new ValidationException(format(messageFmt, messageArguments));
     }
   }
 }

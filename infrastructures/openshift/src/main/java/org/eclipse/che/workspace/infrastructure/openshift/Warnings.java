@@ -23,20 +23,10 @@ public final class Warnings {
       "Routes specified in OpenShift recipe are ignored. "
           + "To expose ports please define servers in machine configuration.";
 
-  public static final int PVC_IGNORED_WARNING_CODE =
-      org.eclipse.che.workspace.infrastructure.kubernetes.Warnings.PVC_IGNORED_WARNING_CODE;
-  public static final String PVC_IGNORED_WARNING_MESSAGE =
-      "Persistent volume claims specified in OpenShift recipe are ignored.";
-
   public static final int SECRET_IGNORED_WARNING_CODE =
       org.eclipse.che.workspace.infrastructure.kubernetes.Warnings.SECRET_IGNORED_WARNING_CODE;
   public static final String SECRET_IGNORED_WARNING_MESSAGE =
       "Secrets specified in OpenShift recipe are ignored.";
-
-  public static final int CONFIG_MAP_IGNORED_WARNING_CODE =
-      org.eclipse.che.workspace.infrastructure.kubernetes.Warnings.CONFIG_MAP_IGNORED_WARNING_CODE;
-  public static final String CONFIG_MAP_IGNORED_WARNING_MESSAGE =
-      "Config maps specified in OpenShift recipe are ignored.";
 
   private Warnings() {}
 }
