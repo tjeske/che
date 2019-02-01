@@ -19,10 +19,7 @@ WORKDIR ${HOME}
 ARG GITHUB_TOKEN
 
 # Define upstream version of theia to use
-ARG THEIA_VERSION=0.3.18
-
-# Invalidate cache if there is a new commit
-ADD https://api.github.com/repos/theia-ide/theia/git/refs/tags/v${THEIA_VERSION} /tmp/.sha1-repository
+ARG THEIA_VERSION=0.3.17
 
 # Check github limit
 RUN if [ ! -z "${GITHUB_TOKEN-}" ]; then \
@@ -41,7 +38,7 @@ RUN if [ ! -z "${GITHUB_TOKEN-}" ]; then \
     fi
 
 # Clone theia
-RUN git clone --branch v${THEIA_VERSION}  --single-branch --depth 1 https://github.com/theia-ide/theia ${HOME}/theia-source-code
+ADD theia-repo ${HOME}/theia-source-code
 
 # Add patches
 ADD src/patches ${HOME}/patches
@@ -90,7 +87,7 @@ EXPOSE 3100 3130
 # Install curl and bash
 RUN apk add --update --no-cache sudo openjdk8-jre git bzip2 which bash curl
 RUN adduser --disabled-password -S -u 1001 -G root -h ${HOME} -s /bin/sh theia \
-    && echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+    && echo "theia ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     # Create /projects for Che
     && mkdir /projects \
     # Create root node_modules in order to not use node_modules in each project folder
@@ -125,6 +122,7 @@ RUN adduser --disabled-password -S -u 1001 -G root -h ${HOME} -s /bin/sh theia \
     && find ${HOME} -exec sh -c "chgrp 0 {}; chmod g+rwX {}" \;
 
 COPY --chown=theia:root --from=builder /home/theia-dev/theia-source-code/production /home/theia
+ADD ./demo/* /projects/
 USER theia
 WORKDIR /projects
 ADD src/entrypoint.sh /entrypoint.sh
