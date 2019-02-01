@@ -40,11 +40,17 @@ WORKDIR ${HOME}
 # Exposing Theia ports
 EXPOSE 3000 3030
 
+# Clone che-theia-generator
+RUN git clone --branch mydsl --single-branch --depth 1 https://github.com/tjeske/che-theia-generator ${HOME}/che-theia-generator
+
 # Configure npm and yarn to use home folder for global dependencies
 RUN npm config set prefix "${HOME}/.npm-global" && \
     echo "--global-folder \"${HOME}/.yarn-global\"" > ${HOME}/.yarnrc && \
     # add eclipse che theia generator
-    yarn global add @eclipse-che/theia-generator@0.0.1-1548066371 && \
+    #yarn global add @eclipse-che/theia-generator@0.0.1-1548066371 && \
+    git config --global user.name "anonymous" && \
+    git config --global user.email "you@example.com" && \
+    mkdir -p $(yarn global bin) && cd ${HOME}/che-theia-generator && yarn && ln -s ${HOME}/che-theia-generator/dist/index.js $(yarn global bin)/che:theia && \
     # Generate .passwd.template \
     cat /etc/passwd | \
     sed s#root:x.*#theia-dev:x:\${USER_ID}:\${GROUP_ID}::${HOME}:/bin/bash#g \
