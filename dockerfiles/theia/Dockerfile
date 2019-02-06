@@ -121,9 +121,15 @@ RUN adduser --disabled-password -S -u 1001 -G root -h ${HOME} -s /bin/sh theia \
     # Change permissions to allow editing of files for openshift user
     && find ${HOME} -exec sh -c "chgrp 0 {}; chmod g+rwX {}" \;
 
+# containerflight
+RUN curl -L https://github.com/tjeske/containerflight/releases/download/0.2.1/containerflight -o /usr/local/bin/containerflight
+RUN chmod +x /usr/local/bin/containerflight
+
 COPY --chown=theia:root --from=builder /home/theia-dev/theia-source-code/production /home/theia
+ADD ./tools/ghdl /projects/
 ADD ./demo/* /projects/
 USER theia
+ENV USER theia
 WORKDIR /projects
 ADD src/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
