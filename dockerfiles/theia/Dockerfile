@@ -86,7 +86,8 @@ EXPOSE 3100 3130
 # Install which tool in order to search git
 # Install curl and bash
 RUN apk add --update --no-cache sudo openjdk8-jre git bzip2 which bash curl
-RUN adduser --disabled-password -S -u 1001 -G root -h ${HOME} -s /bin/sh theia \
+RUN addgroup -g 1101 docker
+RUN adduser --disabled-password -S -u 1001 -G docker -h ${HOME} -s /bin/sh theia \
     && echo "theia ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     # Create /projects for Che
     && mkdir /projects \
